@@ -33,7 +33,7 @@ $ bundle install
 $ ln -s $(pwd)/bin/playon /usr/local/bin/playon
 ```
 
-(container runtime is not fully working yet!!!)
+**(container runtime is not fully working yet!!!)**
 
 ...or run `bin/lxc-playon` which will build a docker image and run 
 the `playon` command in the container. Note that the initial build will take a minute or so.
