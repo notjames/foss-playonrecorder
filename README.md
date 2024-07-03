@@ -1,6 +1,18 @@
 # playon
 
-playon has two main commands, `auth` and `videos`.
+This tool interfaces with the PlayOn Recorder API. The PlayOn Recorder is a service that records
+video streams from various sources. The API is used to manage the videos on that service. See 
+[PlayOn Recorder](https://www.playon.tv/) for more information.
+
+DISCLAIMER: This tool is not affiliated with PlayOn. It is a third-party tool that interfaces
+with the PlayOn Recorder API.
+
+PlayOn provides a tool for Windows and Mac users that will allow them to manage their recordings.
+The purpose behind this tool was to make something similar for Linux and make it simple to automate
+downloads of your video recordings from the PlayOn service. PlayOn is not free, but it's a very useful
+service if you need a way to get your Vudu recordings migrated to your local media server and such.
+
+`playon` has two main command arguments, `auth` and `videos`.
 
 * `auth` is used to manage the credentials used to authenticate to the PlayOn Recorder.
 * `videos` is used to manage the videos on the PlayOn Recorder.
@@ -24,6 +36,7 @@ $ ln -s $(pwd)/bin/playon /usr/local/bin/playon
 ...or run `bin/lxc-playon` which will build a docker image and run 
 the `playon` command in the container. Note that the initial build will take a minute or so.
 Subsequent runs will be faster but not as fast as running the command directly from your machine.
+Obviously, you'll need to have docker installed.
 
 ### Authentication
 
