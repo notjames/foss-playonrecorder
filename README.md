@@ -2,7 +2,7 @@
 
 This tool interfaces with the PlayOn Recorder API. The PlayOn Recorder is a service that records
 video streams from various sources. The API is used to manage the videos on that service. See 
-[PlayOn Recorder](https://www.playon.tv/) for more information.
+[PlayOn Service](https://www.playon.tv/) for more information.
 
 DISCLAIMER: This tool is not affiliated with PlayOn. It is a third-party tool that interfaces
 with the PlayOn Recorder API.
