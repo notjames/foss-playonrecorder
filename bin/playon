@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+# debug things
+require 'pry-byebug'
+require 'amazing_print'
+
+require_relative '../lib/playon'
+
+exit Main.run(ARGV)

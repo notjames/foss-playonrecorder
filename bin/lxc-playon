@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+#docker buildx build --build-arg UID="$UID"              --build-arg GID="$GID"              --build-arg USER="$USER" -t playon:latest -f docker/Dockerfile .
+dbus_path="${DBUS_SESSION_BUS_ADDRESS/unix:path=/}"
+
+docker build -q \
+             --build-arg UID="$(id -u)" \
+             --build-arg GID="$(id -g)" \
+             --build-arg USER="$USER" \
+             -f docker/Dockerfile -t playon:latest .
+
+docker run -it --security-opt apparmor=unconfined \
+               -e DBUS_SESSION_BUS_ADDRESS="$DBUS_SESSION_BUS_ADDRESS" \
+               -e PLAYON_PASSWORD="$PLAYON_PASSWORD" \
+               -v "$HOME"/.config/playonrecorder:"$HOME"/.config/playonrecorder \
+               --mount type=bind,source="$dbus_path",target="$dbus_path" \
+               playon:latest
