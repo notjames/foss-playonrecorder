@@ -22,7 +22,8 @@ $ ln -s $(pwd)/bin/playon /usr/local/bin/playon
 ```
 
 ...or run `bin/lxc-playon` which will build a docker image and run 
-the `playon` command in the container. Note that the initial build will take as minute or so.
+the `playon` command in the container. Note that the initial build will take a minute or so.
+Subsequent runs will be faster but not as fast as running the command directly from your machine.
 
 ### Authentication
 
