@@ -36,7 +36,7 @@ $ ln -s $(pwd)/bin/playon /usr/local/bin/playon
 ...or run `bin/lxc-playon` which will build a docker image and run 
 the `playon` command in the container. Note that the initial build will take a minute or so.
 Subsequent runs will be faster but not as fast as running the command directly from your machine.
-Obviously, you'll need to have docker installed.
+Obviously, you'll need to have `docker` installed.
 
 ### Authentication
 
@@ -68,24 +68,35 @@ bin/playon --email your@email.com auth --wallet <wallet-name> --folder <folder-n
 ```
 
 The main thing to remember is that the args for video actions are provided to the `video` command.
-The subcommands are `ls`, `dl`, and `rm`. So remember, the args are provided to the `videos` command.
+The subcommands are `ls`, `dl`, and `rm`.
+
+#### Help Usage
+
+`help` command is available for all commands and subcommands. `help` (without -- prefix) is always
+used before the command or subcommand, and `help` (with -- prefix) is used after the command or subcommand.
+
+```shell
+❯ bin/playon help
+❯ bin/playon help videos
+❯ bin/playon videos --help
+```
 
 ## Documentation
 
 #### Global Scope Arguments
 
 ##### NAME
-```
+```shell
     playon - Playon Recorder API CLI Tool
 ```
 
 ##### SYNOPSIS
-```
+```shell
     playon [global options] command [command options] [arguments...]
 ```
 
 ##### GLOBAL OPTIONS
-```
+```shell
     -c, --config=arg - config file (default: /home/jimconn/.config/playonrecorder/config.json)
     --email=arg      - Email address used to auth to PlayOn Recorder (default: none)
     --help           - Show this message
@@ -93,7 +104,7 @@ The subcommands are `ls`, `dl`, and `rm`. So remember, the args are provided to 
 ```
 
 ##### COMMANDS
-```
+```shell
     auth   - Manage credential management to the PlayOn Recorder
     help   - Shows a list of commands or help for one command
     videos - Manage videos on the PlayOn Recorder
@@ -102,18 +113,18 @@ The subcommands are `ls`, `dl`, and `rm`. So remember, the args are provided to 
 #### Auth Arguments
 
 ##### NAME
-```
+```shell
     auth - Manage credential management to the PlayOn Recorder
 ```
 
 ##### SYNOPSIS
-```
+```shell
     playon [global options] auth [command options]
 
 ```
 
 ##### COMMAND OPTIONS
-```
+```shell
     --entry=arg  - Name of the entry in the KDE wallet (default: < --email parameter >)
     --folder=arg - Name of the folder in the KDE wallet (default: playonrecorder)
     --wallet=arg - Name of the KDE wallet to use (default: none)
@@ -122,12 +133,12 @@ The subcommands are `ls`, `dl`, and `rm`. So remember, the args are provided to 
 #### Videos Arguments
 
 ##### NAME
-```
+```shell
     videos - Manage videos on the PlayOn Recorder
 ```
 
 ##### SYNOPSIS
-```
+```shell
     playon [global options] videos [command options] dl
 
     playon [global options] videos [command options] ls
@@ -136,7 +147,7 @@ The subcommands are `ls`, `dl`, and `rm`. So remember, the args are provided to 
 ```
 
 ##### COMMAND OPTIONS
-```
+```shell
     -a, --[no-]all     - show all videos (default: enabled)
     --by-season=arg    - just show videos from this season(s) (may be used more than once, default: none)
     --by-series=arg    - just show videos from this series(s) (may be used more than once, default: none)
@@ -150,7 +161,7 @@ The subcommands are `ls`, `dl`, and `rm`. So remember, the args are provided to 
 ```
 
 ##### COMMANDS
-```
+```shell
     dl, download - Download videos from the PlayOn Recorder
     ls, list     - List videos on the PlayOn Recorder
     rm, delete   - Delete videos on the PlayOn Recorder
@@ -189,9 +200,11 @@ bin/playon --email your@email.com auth
 
 ##### Wallet
 
-```
+```shell
 bin/playon --email your@email.com auth --wallet <wallet-name> --folder <folder-name> [--entry <entry-name>]
 ```
+
+`--entry` is required bug if not provided, it will use the `--email` argument as the entry name.
 
 ##### Configuring Wallet
 
