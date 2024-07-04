@@ -128,9 +128,12 @@ module Library
       rescue RuntimeError => e
         if e.message =~ /expired token/i
           if auth
+            # settle
+            sleep 0.65
+
             warn '...renewed token'
-            sleep 1
-            retry
+            read_config(@cfgpath)
+            get_all
           end
         end
         warn e.message

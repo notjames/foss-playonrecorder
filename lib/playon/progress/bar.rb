@@ -75,6 +75,24 @@ class TerminalProgress
   end
 
   ##
+  # Increment the progress bar and print a message if present.
+  #
+  # @param message [String, nil] Optional message to display above the progress bar.
+  def print_error(error)
+    @mutex.synchronize do
+      Curses.setpos(@row, 0)
+      Curses.clrtoeol # Clear the current line
+      Curses.addstr(error) unless error.nil?
+      Curses.setpos(@row + 1, 0)
+      Curses.clrtoeol # Clear the current line
+
+      instance_variable_set(:@stop, @cycle.next) if @threaded == false
+
+      print_line
+    end
+  end
+
+  ##
   # Print a single line of the progress bar.
   def print_line
     Curses.attron(Curses.color_pair(1) | Curses::A_BOLD) do
@@ -89,14 +107,19 @@ class TerminalProgress
 
   ##
   # This is the last call to terminate the progress loop and finish rendering the bar.
-  def print_complete
+  def print_complete(*error)
+    error = error.first unless error.empty?
     kill
     Curses.setpos(@row, 0)
     Curses.clrtoeol # Clear the current line
     Curses.setpos(@row + 1, 0)
     Curses.clrtoeol # Clear the current line
     Curses.attron(Curses.color_pair(2) | Curses::A_BOLD) do
-      Curses.addstr(format("    %s/%s: [%s!]", @max, @max, '=' * @max_width))
+      if error
+        Curses.addstr(format("    %s/%s: [error: %s", error))
+      else
+        Curses.addstr(format("    %s/%s: [%s!]", @max, @max, '=' * @max_width))
+      end
       Curses.refresh
     end
   end

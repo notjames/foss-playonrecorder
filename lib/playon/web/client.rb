@@ -53,8 +53,6 @@ class WebClient
       raise format('Download failed: %s', e)
     end
 
-    File.rename(dl_tmp, dl_path)
-
     true
   end
 end

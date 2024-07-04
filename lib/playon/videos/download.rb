@@ -44,6 +44,7 @@ module Library
     def download_all
       threads   = []
       progress  = {}
+      errors    = {}
       filepath  = nil
 
       warn 'Checking for video existence...' unless @options[:force]
@@ -54,7 +55,7 @@ module Library
           resp_body = get_download_link(video[:ID], video[:Name])
           cf_link   = build_cf_link(resp_body[:data])
           video_ext = resp_body[:data][:url].split('.').last
-          title     = video[:Name].gsub(/'|\(.*?\)|\s+$/, '')
+          title     = video[:Name].gsub(/[^ -~]+\'|\s*\(\d+\-?\)|\s+$/, '')
           filepath  = format('%s/%s.%s', @options[:'dl-path'], title, video_ext)
           dl_tpath  = format('%s/%s.%s%s', @options[:'dl-path'], title, video_ext, TMP_EXT)
           tui_row   = index + idx
@@ -77,7 +78,11 @@ module Library
 
           # location of this thread is important
           # it must be after the download_thread is created
-          threads << download_thread
+          threads << { thread: download_thread,
+                       filepath: filepath,
+                       dl_tpath: dl_tpath,
+                       title: title,
+                       type: 'download' }
 
           if @options[:progress]
             progress_thread = Thread.new do
@@ -86,24 +91,39 @@ module Library
                 delta_size = now_size - last_size
 
                 progress[title].update_progress(delta_size,
-                                                format('Downloading:: %60s (%s)',
+                                                format('Downloading:: %87s (%s)',
                                                         title, video[:HumanSize]))
 
                 last_size  = File.size(dl_tpath)
 
                 break if now_size >= fin_size
                 sleep 0.1
+              rescue StandardError => e
+                sleep 0.1
+                errors[title] = e.message
+                break
               end
+              errors.keys.each { |k| progress[k].print_error(errors[k]) }
               progress[title].print_complete
             end
 
             # location of this thread is important
-            threads << progress_thread
+            threads << { thread: progress_thread,
+                         filepath: filepath,
+                         dl_tpath: dl_tpath,
+                         title: title,
+                         type: 'progress' }
           else
             puts format("Downloading: %s (%s)", title, video[:HumanSize])
           end
         end
-        ThreadsWait.all_waits(*threads)
+
+        ThreadsWait.all_waits(*threads.map { |t| t[:thread] }) do |t|
+          done_thread = threads.select { |th| th[:thread] == t }
+          if done_thread[:type] == 'download' && t == done_thread[:thread]
+            File.rename(done_thread[:dl_tpath], done_thread[:filepath])
+          end
+        end
       end
     ensure
       Curses.close_screen
