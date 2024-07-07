@@ -143,9 +143,14 @@ module Library
       end
 
       # TODO mem management and pages of data
-      ap resp_body[:data][:entries]
-      exit
       @videos = resp_body[:data][:entries]
+
+      # Fix TV series Name
+      @videos.each do |v|
+        if v[:Series]
+          v[:Name] = format('%s %s', v[:Series], v[:Name])
+        end
+      end
     end
 
     # provides taking videos by-series and by-season
