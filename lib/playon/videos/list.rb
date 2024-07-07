@@ -132,6 +132,8 @@ module Library
             sleep 0.65
 
             warn '...renewed token'
+            # TODO the problem is in read_config 
+            binding.pry
             read_config(@cfgpath)
             get_all
           end
@@ -141,6 +143,8 @@ module Library
       end
 
       # TODO mem management and pages of data
+      ap resp_body[:data][:entries]
+      exit
       @videos = resp_body[:data][:entries]
     end
 
@@ -174,9 +178,6 @@ module Library
       @v_out = @v_out.sort_by { |v| v[:Episode] }     if @options[:'sort-by'] == 'episode'
       @v_out = @v_out.sort_by { |v| v[:Expires] }     if @options[:'sort-by'] == 'expires'
       @v_out = @v_out.sort_by { |v| v[:ReleaseYear] } if @options[:'sort-by'] == 'year'
-    end
-
-    def get_by_title(title)
     end
   end
 end

@@ -87,7 +87,7 @@ module Library
           if @options[:progress]
             progress_thread = Thread.new do
               loop do
-                now_size   = File.size(dl_tpath)
+                now_size   = File.size(dl_tpath) rescue Errno::ENOENT
                 delta_size = now_size - last_size
 
                 progress[title].update_progress(delta_size,
@@ -98,12 +98,7 @@ module Library
 
                 break if now_size >= fin_size
                 sleep 0.1
-              rescue StandardError => e
-                sleep 0.1
-                errors[title] = e.message
-                break
               end
-              errors.keys.each { |k| progress[k].print_error(errors[k]) }
               progress[title].print_complete
             end
 
@@ -119,9 +114,22 @@ module Library
         end
 
         ThreadsWait.all_waits(*threads.map { |t| t[:thread] }) do |t|
-          done_thread = threads.select { |th| th[:thread] == t }
+          done_thread = threads.select { |th| th[:thread] == t }.first
           if done_thread[:type] == 'download' && t == done_thread[:thread]
-            File.rename(done_thread[:dl_tpath], done_thread[:filepath])
+            begin
+              File.rename(done_thread[:dl_tpath], done_thread[:filepath])
+            rescue Errno::ENOENT => e
+              title   = done_thread[:title]
+              unless @options[:progress]
+                warn format('Error renaming file: %s (so moving on)', e.message)
+                next
+              end
+              progress_thread = threads.select do |th|
+                th[:title] == title && th[:type] == 'progress'
+              end.first
+              progress[title].print_complete(errors[title]) 
+              progress_thread[:thread].kill
+            end
           end
         end
       end

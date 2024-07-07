@@ -116,7 +116,7 @@ class TerminalProgress
     Curses.clrtoeol # Clear the current line
     Curses.attron(Curses.color_pair(2) | Curses::A_BOLD) do
       if error
-        Curses.addstr(format("    %s/%s: [error: %s", error))
+        Curses.addstr(format("    %s/%s: [error: %s", @total, @max, error))
       else
         Curses.addstr(format("    %s/%s: [%s!]", @max, @max, '=' * @max_width))
       end
