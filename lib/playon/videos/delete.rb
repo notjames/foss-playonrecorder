@@ -3,8 +3,8 @@
 # https --json delete https://api.playonrecorder.com/v3/library/15786390 Accept:application/json Content-type:application/json Authorization:'Bearer <REDACTED>'
 module Library
   class Videos
-    def delete(global, args, videos)
-      @options = args.values.first.merge(global)
+    def delete(args, videos)
+      @options = args.values.first
       @videos  = videos
 
       delete_all

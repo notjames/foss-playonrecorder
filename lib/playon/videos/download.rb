@@ -87,17 +87,21 @@ module Library
           if @options[:progress]
             progress_thread = Thread.new do
               loop do
-                now_size   = File.size(dl_tpath) rescue Errno::ENOENT
-                delta_size = now_size - last_size
+                begin
+                  now_size   = File.size(dl_tpath)
+                  delta_size = now_size - last_size
 
-                progress[title].update_progress(delta_size,
-                                                format('Downloading:: %87s (%s)',
-                                                        title, video[:HumanSize]))
+                  progress[title].update_progress(delta_size,
+                                                  format('Downloading:: %87s (%s)',
+                                                          title, video[:HumanSize]))
 
-                last_size  = File.size(dl_tpath)
+                  last_size  = File.size(dl_tpath)
 
-                break if now_size >= fin_size
-                sleep 0.1
+                  break if now_size >= fin_size
+                  sleep 0.1
+                rescue Errno::ENOENT
+                  break
+                end
               end
               progress[title].print_complete
             end

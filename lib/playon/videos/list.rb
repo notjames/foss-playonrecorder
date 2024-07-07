@@ -132,9 +132,7 @@ module Library
             sleep 0.65
 
             warn '...renewed token'
-            # TODO the problem is in read_config 
-            binding.pry
-            read_config(@cfgpath)
+            read_config(@cfg)
             get_all
           end
         end

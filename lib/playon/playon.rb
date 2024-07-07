@@ -155,7 +155,7 @@ class Main
     videos.command [:rm, :delete] do |rm|
       rm.action do |global, options, args|
         videos = vid_lib.list(options, true)
-        vid_lib.delete(options, options, videos)
+        vid_lib.delete(options, videos)
       end
     end
 
