@@ -1,5 +1,5 @@
 
-VER_FILE = File.join(File.dirname(__FILE__), '..', 'version.rb')
+VER_FILE = File.join(File.dirname(__FILE__), '..', '.version')
 
 class Version
   def self.to_s
