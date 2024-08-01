@@ -58,9 +58,7 @@ module Library
         warn 'Error: Authentication failed'
       end
 
-      new_credentials = read_config(cfg)
-
-      @creds = new_credentials
+      @creds = read_config(cfg)
     end
   end
 end

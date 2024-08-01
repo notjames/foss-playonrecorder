@@ -128,9 +128,11 @@ module Library
                 warn format('Error renaming file: %s (so moving on)', e.message)
                 next
               end
+
               progress_thread = threads.select do |th|
-                th[:title] == title && th[:type] == 'progress'
-              end.first
+                                  th[:title] == title && th[:type] == 'progress'
+                                end.first
+
               progress[title].print_complete(errors[title]) 
               progress_thread[:thread].kill
             end

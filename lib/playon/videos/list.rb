@@ -132,7 +132,7 @@ module Library
             sleep 0.65
 
             warn '...renewed token'
-            read_config(@cfg)
+            @creds = read_config(@cfg)
             get_all
           end
         end
