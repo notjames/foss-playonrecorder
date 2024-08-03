@@ -90,7 +90,7 @@ module Library
     #          :entries => [
     #        [ 0] {
     #                           :ID => 15786522,
-    #                    :AccountID => 1961118,
+    #                    :AccountID => xxxxxxxx,
     #                         :Rank => 1668,
     #                         :Name => "The Call of the Wild",
     #                     :Duration => 5986000,
@@ -129,10 +129,8 @@ module Library
         if e.message =~ /expired token/i
           if auth
             # settle
-            sleep 0.65
-
+            sleep 1
             warn '...renewed token'
-            @creds = read_config(@cfg)
             get_all
           end
         end

@@ -28,24 +28,36 @@ module Library
 
     def already_exists?(file_path)
       return false if @options[:force]
-
-      Find.find(file_path) do |file|
-        if file == file_path
-          basename = File.basename(file)
-          warn format('Video: %-45s already exists in: %20s. Skipping. Use --force to override.',
-                      basename, @options[:'dl-path'])
-          return true
+      
+      seek_file  = File.basename(file_path)
+      seek_dir   = @config.base_storage_path if @config.to_h.key?(:base_storage_path)
+      seek_dir ||= File.dirname(file_path) # Default to directory of file_path if base_file_path not provided
+      
+      Dir.glob(seek_dir) do |paths| 
+        # Use Find.find to recursively search within seek_dir
+        Find.find(paths) do |path_file|
+          next if File.directory?(path_file)
+          
+          iter_file = File.basename(path_file)
+          
+          if iter_file == seek_file
+            warn format('Video: %-45s already exists in: %20s. Skipping. Use --force to override.',
+                        seek_file, @options[:'dl-path'])
+            return true
+          end
         end
-      end rescue Errno::ENOENT
+      end
+      
+      false # Return false if file was not found
+    rescue Errno::ENOENT
 
-      false
     end
 
     def download_all
       threads   = []
       progress  = {}
       errors    = {}
-      filepath  = nil
+      file_path = nil
 
       warn 'Checking for video existence...' unless @options[:force]
 
@@ -56,16 +68,16 @@ module Library
           cf_link   = build_cf_link(resp_body[:data])
           video_ext = resp_body[:data][:url].split('.').last
           title     = video[:Name].gsub(/[^ -~]+\'|\s*\(\d+\-?\)|\s+$/, '')
-          filepath  = format('%s/%s.%s', @options[:'dl-path'], title, video_ext)
+          file_path = format('%s/%s.%s', @options[:'dl-path'], title, video_ext)
           dl_tpath  = format('%s/%s.%s%s', @options[:'dl-path'], title, video_ext, TMP_EXT)
           tui_row   = index + idx
           tui_row  *= 3 if idx > 0
           fin_size  = video[:Size]
           last_size = 0
 
-          next if already_exists?(filepath)
+          next if already_exists?(file_path)
 
-          File.unlink(filepath) rescue Errno::ENOENT if @options[:force]
+          File.unlink(file_path) rescue Errno::ENOENT if @options[:force]
 
           touch(dl_tpath)
 
@@ -73,13 +85,13 @@ module Library
             if @options[:progress]
 
           download_thread = Thread.new do
-            @dl_client.do_download(cf_link, @options, title, filepath, dl_tpath)
+            @dl_client.do_download(cf_link, @options, title, file_path, dl_tpath)
           end
 
           # location of this thread is important
           # it must be after the download_thread is created
           threads << { thread: download_thread,
-                       filepath: filepath,
+                       filepath: file_path,
                        dl_tpath: dl_tpath,
                        title: title,
                        type: 'download' }
@@ -108,7 +120,7 @@ module Library
 
             # location of this thread is important
             threads << { thread: progress_thread,
-                         filepath: filepath,
+                         filepath: file_path,
                          dl_tpath: dl_tpath,
                          title: title,
                          type: 'progress' }

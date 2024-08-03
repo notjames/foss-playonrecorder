@@ -10,27 +10,28 @@ module Library
 
     attr_reader :videos
 
-    def initialize(credentials, cfg_file)
-      # allows token refresh or newly authed client if necessary
-      @creds  = credentials
+    def initialize(cfg_file)
       @cfg    = cfg_file
       auth
-
-      @jwt    = credentials.auth.jwt
-      @client = WebClient.new(@jwt).client
-      @dl_client = WebClient.new(@jwt)
       @videos = nil
     end
 
     def auth
-      email    = @creds.auth.email
-      cfg      = @cfg
+      config     = read_config(@cfg)
+      @creds     = config[:auth]
+      @config    = config[:config]
+      @jwt       = @creds.jwt
+      @client    = WebClient.new(@jwt).client
+      @dl_client = WebClient.new(@jwt)
 
-      password = ENV['PLAYON_PASSWORD']
+      email      = @creds.email
+      cfg        = @cfg
 
-      wallet   = @creds.config.wallet
-      folder   = @creds.config.folder
-      entry    = @creds.config.entry
+      password   = ENV['PLAYON_PASSWORD']
+
+      wallet     = @config.wallet
+      folder     = @config.folder
+      entry      = @config.entry
 
       if wallet
         if folder.nil? || entry.nil?

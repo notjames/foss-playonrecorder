@@ -141,8 +141,7 @@ class Main
                                      default_value: dl_path,
                                      desc: 'path to which to download videos'
 
-    credentials = read_config(cfg_file)
-    vid_lib     = Library::Videos.new(credentials, cfg_file)
+    vid_lib     = Library::Videos.new(cfg_file)
 
     videos.desc 'List videos on the PlayOn Recorder'
     videos.command [:ls, :list] do |list|
