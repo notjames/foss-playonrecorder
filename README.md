@@ -150,6 +150,7 @@ used before the command or subcommand, and `help` (with -- prefix) is used after
 
 ##### COMMAND OPTIONS
 ```shell
+  COMMAND OPTIONS
     -a, --[no-]all     - show all videos (default: enabled)
     --by-season=arg    - just show videos from this season(s) (may be used more than once, default: none)
     --by-series=arg    - just show videos from this series(s) (may be used more than once, default: none)
@@ -159,7 +160,7 @@ used before the command or subcommand, and `help` (with -- prefix) is used after
     -r, --[no-]reverse - reverse the sort order
     -s, --sort-by=arg  - sort by size, title, episode, download-date, rating, expiry, or year (default: title)
     --show-as=arg      - show output as table, json, yaml, or csv (default: table)
-    --title=arg        - show or download videos with named title(s) (may be used more than once, default: none)
+    --title=arg        - find videos with named title(s). Regex friendly and case insensitive (may be used more than once, default: none)
 ```
 
 ##### COMMANDS

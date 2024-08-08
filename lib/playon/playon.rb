@@ -135,7 +135,7 @@ class Main
                                      desc: 'show output as table, json, yaml, or csv',
                                      must_match: /^table|json|yaml|csv$/
     videos.flag [:title],            type: :string,
-                                     desc: 'show or download videos with named title(s)',
+                                     desc: %{find videos with named title(s). Regex friendly and case insensitive},
                                      multiple: true
     videos.flag [:'dl-path'],        type: :string,
                                      default_value: dl_path,
