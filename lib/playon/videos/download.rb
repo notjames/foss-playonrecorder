@@ -69,15 +69,15 @@ module Library
       errors    = {}
       file_path = nil
 
-      warn 'Checking for video existence...' unless @options[:force]
+      if @options[:force] == false
+        warn 'Checking for video existence...'
 
-      unless @options[:force]
         @videos.select! do |video|
-          next if already_exists?(file_path)
-          resp_body         = get_resp(video)[:resp]
+          get_resp(video)
 
-          video[:resp]      = resp_body
-          video[:file_path] = file_path
+          next if already_exists?(video[:file_path])
+
+          puts format('Will download: %s (%s)', video[:Name], video[:HumanSize])
           video
         end 
 
@@ -173,9 +173,9 @@ module Library
             end
           end
         end
-      ensure
-        Curses.close_screen
       end
+    ensure
+      Curses.close_screen
     end
 
     def get_download_link(video_id, title)

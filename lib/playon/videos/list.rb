@@ -119,10 +119,11 @@ module Library
     #        },
     def get_all
       uri      = '/v3/library/all'
-      response = @client.get(uri)
-      resp_body = JSON.parse(response.body, symbolize_names: true)
 
       begin
+        response = @client.get(uri)
+        resp_body = JSON.parse(response.body, symbolize_names: true)
+
         raise RuntimeError, format('Error getting all videos: %s', resp_body[:error_message]) \
           if resp_body[:success] == false
       rescue RuntimeError => e
@@ -135,7 +136,7 @@ module Library
             warn '...renewed token'
 
             sleep 0.65
-            get_all
+            retry
           end
         end
         warn e.message
