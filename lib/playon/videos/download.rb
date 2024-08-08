@@ -49,8 +49,18 @@ module Library
       end
       
       false # Return false if file was not found
-    rescue Errno::ENOENT
+    rescue Errno::ENOENT; end
 
+    def get_resp(video)
+      resp_body = get_download_link(video[:ID], video[:Name])
+      video_ext = resp_body[:data][:url].split('.').last
+      title     = video[:Name].gsub(/[^ -~]+\'|\s*\(\d+\-?\)|\s+$/, '')
+      file_path = format('%s/%s.%s', @options[:'dl-path'], title, video_ext)
+
+      video[:resp]      = resp_body
+      video[:file_path] = file_path
+
+      video
     end
 
     def download_all
@@ -61,25 +71,38 @@ module Library
 
       warn 'Checking for video existence...' unless @options[:force]
 
+      unless @options[:force]
+        @videos.select! do |video|
+          next if already_exists?(file_path)
+          resp_body         = get_resp(video)[:resp]
+
+          video[:resp]      = resp_body
+          video[:file_path] = file_path
+          video
+        end 
+
+        puts format('Will download %d videos...', @videos.size)
+      end
+
       # download MAX_DOWNLOADS videos at a time
       @videos.each_slice(MAX_DOWNLOADS).with_index do |slice, index|
         slice.each_with_index do |video, idx|
-          resp_body = get_download_link(video[:ID], video[:Name])
-          cf_link   = build_cf_link(resp_body[:data])
-          video_ext = resp_body[:data][:url].split('.').last
+          video     = get_resp(video) unless video.has_key?(:resp)
+          resp      = video[:resp]
+          cf_link   = build_cf_link(resp[:data])
+          video_ext = resp[:data][:url].split('.').last
           title     = video[:Name].gsub(/[^ -~]+\'|\s*\(\d+\-?\)|\s+$/, '')
-          file_path = format('%s/%s.%s', @options[:'dl-path'], title, video_ext)
+          file_path = video[:file_path]
           dl_tpath  = format('%s/%s.%s%s', @options[:'dl-path'], title, video_ext, TMP_EXT)
           tui_row   = index + idx
           tui_row  *= 3 if idx > 0
           fin_size  = video[:Size]
           last_size = 0
 
-          next if already_exists?(file_path)
-
-          File.unlink(file_path) rescue Errno::ENOENT if @options[:force]
-
-          touch(dl_tpath)
+          if @options[:force]
+            File.unlink(file_path) rescue Errno::ENOENT
+            touch(dl_tpath)
+          end
 
           progress[title] = TerminalProgress.new(tui_row, 80, false, fin_size) \
             if @options[:progress]
@@ -150,9 +173,9 @@ module Library
             end
           end
         end
+      ensure
+        Curses.close_screen
       end
-    ensure
-      Curses.close_screen
     end
 
     def get_download_link(video_id, title)

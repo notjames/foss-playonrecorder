@@ -128,9 +128,13 @@ module Library
       rescue RuntimeError => e
         if e.message =~ /expired token/i
           if auth
-            # settle
-            sleep 1
+            config  = read_config(@cfg)
+            @creds  = config[:auth]
+            @config = config[:config]
+
             warn '...renewed token'
+
+            sleep 0.65
             get_all
           end
         end
@@ -160,7 +164,12 @@ module Library
       end
 
       unless @options[:title].empty?
-        @v_out = @v_out.select { |v| @options[:title].map(&:downcase).include?(v[:Name].downcase) }
+        @v_out = @v_out.select do |v|
+                   @options[:title].any? do |t|
+                     matcher = Regexp.new(/#{t}/i)
+                     matcher.match(v[:Name])
+                   end
+                 end
       end
     end
 
