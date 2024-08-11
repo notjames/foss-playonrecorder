@@ -129,10 +129,6 @@ module Library
       rescue RuntimeError => e
         if e.message =~ /expired token/i
           if auth
-            config  = read_config(@cfg)
-            @creds  = config[:auth]
-            @config = config[:config]
-
             warn '...renewed token'
 
             sleep 0.65

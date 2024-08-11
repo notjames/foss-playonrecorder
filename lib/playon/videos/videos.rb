@@ -20,9 +20,6 @@ module Library
       config     = read_config(@cfg)
       @creds     = config[:auth]
       @config    = config[:config]
-      @jwt       = @creds.jwt
-      @client    = WebClient.new(@jwt).client
-      @dl_client = WebClient.new(@jwt)
 
       email      = @creds.email
       cfg        = @cfg
@@ -59,7 +56,12 @@ module Library
         warn 'Error: Authentication failed'
       end
 
-      @creds = read_config(cfg)
+      config  = read_config(cfg)
+      @creds  = config[:auth]
+      @config = config[:config]
+      @jwt       = @creds.jwt
+      @client    = WebClient.new(@jwt).client
+      @dl_client = WebClient.new(@jwt)
     end
   end
 end
