@@ -44,7 +44,7 @@ GEM
     thwait (0.2.0)
       e2mmap
     unicode-display_width (2.5.0)
-    uri (0.13.0)
+    uri (0.13.2)
 
 PLATFORMS
   x86_64-linux
