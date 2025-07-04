@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
 # debug things
-require 'pry-byebug'
-require 'amazing_print'
+#require 'pry-byebug'
+#require 'amazing_print'
 
 require_relative '../lib/playon'
 
