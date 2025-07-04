@@ -4,8 +4,6 @@ require 'find'
 require_relative '../progress/manager'
 require_relative '../progress/bar'
 
-require 'pry-byebug'
-
 MAX_DOWNLOADS = 6
 
 module Library
