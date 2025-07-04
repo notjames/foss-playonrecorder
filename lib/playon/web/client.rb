@@ -36,17 +36,15 @@ class WebClient
   end
 
   # filename is not used...for now
-  def do_download(url, options, filename, dl_path, dl_tmp)
+  def do_download(url, options, filename, dl_path, dl_tmp, &progress_callback)
     dl_handle      = File.open(dl_tmp, 'wb')
     dl_handle.sync = true
-    #t = File.open('/var/tmp/debug-dl.log', 'w')
 
     begin
       create_dl_client(url).get do |req|
         req.options.on_data = proc do |chunk, overall_received_bytes, env|
-          #t.write("#{filename}: received #{overall_received_bytes} bytes\n")
-
           dl_handle.write(chunk)
+          progress_callback.call(overall_received_bytes) if progress_callback
         end
       end
     rescue StandardError => e

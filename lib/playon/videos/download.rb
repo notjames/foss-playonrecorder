@@ -1,14 +1,10 @@
 # frozen_string_literal: true
 
-require 'thread'
-require 'thwait'
-require 'find'
-
+require_relative '../progress/manager'
 require_relative '../progress/bar'
 
 MAX_DOWNLOADS = 6
 
-# http --follow api.playonrecorder.com/v3/library/<video ID IE: 15786531>/download x-mmt-app:web "Authorization: Bearer "$(jq -Mr '.data.token' <<< "$por_json")""
 module Library
   class Videos
     include Helpers
@@ -64,10 +60,8 @@ module Library
     end
 
     def download_all
-      threads   = []
-      progress  = {}
-      errors    = {}
-      file_path = nil
+      threads = []
+      manager = Playon::ProgressManager.new if @options[:progress]
 
       if @options[:force] == false
         warn 'Checking for video existence...'
@@ -84,98 +78,53 @@ module Library
         puts format('Will download %d videos...', @videos.size)
       end
 
-      # download MAX_DOWNLOADS videos at a time
-      @videos.each_slice(MAX_DOWNLOADS).with_index do |slice, index|
-        slice.each_with_index do |video, idx|
-          video     = get_resp(video) unless video.has_key?(:resp)
-          resp      = video[:resp]
-          cf_link   = build_cf_link(resp[:data])
+      if @options[:progress]
+        progress_thread = Thread.new do
+          loop do
+            manager.draw
+            sleep 0.1
+          end
+        end
+        threads << progress_thread
+      end
+
+      @videos.each_slice(MAX_DOWNLOADS) do |slice|
+        slice.each do |video|
+          video = get_resp(video) unless video.key?(:resp)
+          resp = video[:resp]
+          cf_link = build_cf_link(resp[:data])
           video_ext = resp[:data][:url].split('.').last
-          title     = video[:Name].gsub(/[^ -~]+\'|\s*\(\d+\-?\)|\s+$/, '')
+          title = video[:Name].gsub(/[^ -~]+\'|\s*\(\d+\-?\)|\s+$/, '')
           file_path = video[:file_path]
-          dl_tpath  = format('%s/%s.%s%s', @options[:'dl-path'], title, video_ext, TMP_EXT)
-          tui_row   = index + idx
-          tui_row  *= 3 if idx > 0
-          fin_size  = video[:Size]
-          last_size = 0
+          dl_tpath = format('%s/%s.%s%s', @options[:'dl-path'], title, video_ext, TMP_EXT)
+          fin_size = video[:Size]
 
           if @options[:force]
             File.unlink(file_path) rescue Errno::ENOENT
             touch(dl_tpath)
           end
 
-          progress[title] = TerminalProgress.new(tui_row, 80, false, fin_size) \
-            if @options[:progress]
+          if @options[:progress]
+            bar = Playon::ProgressBar.new(title, fin_size)
+            manager.add_bar(bar)
+          end
 
           download_thread = Thread.new do
-            @dl_client.do_download(cf_link, @options, title, file_path, dl_tpath)
-          end
-
-          # location of this thread is important
-          # it must be after the download_thread is created
-          threads << { thread: download_thread,
-                       filepath: file_path,
-                       dl_tpath: dl_tpath,
-                       title: title,
-                       type: 'download' }
-
-          if @options[:progress]
-            progress_thread = Thread.new do
-              loop do
-                begin
-                  now_size   = File.size(dl_tpath)
-                  delta_size = now_size - last_size
-
-                  progress[title].update_progress(delta_size,
-                                                  format('Downloading:: %87s (%s)',
-                                                          title, video[:HumanSize]))
-
-                  last_size  = File.size(dl_tpath)
-
-                  break if now_size >= fin_size
-                  sleep 0.1
-                rescue Errno::ENOENT
-                  break
-                end
-              end
-              progress[title].print_complete
+            @dl_client.do_download(cf_link, @options, title, file_path, dl_tpath) do |progress|
+              bar.update(progress) if @options[:progress]
             end
-
-            # location of this thread is important
-            threads << { thread: progress_thread,
-                         filepath: file_path,
-                         dl_tpath: dl_tpath,
-                         title: title,
-                         type: 'progress' }
-          else
-            puts format("Downloading: %s (%s)", title, video[:HumanSize])
-          end
-        end
-
-        ThreadsWait.all_waits(*threads.map { |t| t[:thread] }) do |t|
-          done_thread = threads.select { |th| th[:thread] == t }.first
-          if done_thread[:type] == 'download' && t == done_thread[:thread]
-            begin
-              File.rename(done_thread[:dl_tpath], done_thread[:filepath])
-            rescue Errno::ENOENT => e
-              title   = done_thread[:title]
-              unless @options[:progress]
-                warn format('Error renaming file: %s (so moving on)', e.message)
-                next
-              end
-
-              progress_thread = threads.select do |th|
-                                  th[:title] == title && th[:type] == 'progress'
-                                end.first
-
-              progress[title].print_complete(errors[title]) 
-              progress_thread[:thread].kill
+            if @options[:progress]
+              bar.complete
+              manager.remove_bar(bar)
             end
           end
+          threads << download_thread
         end
+        threads.each(&:join)
+        threads.clear
       end
     ensure
-      Curses.close_screen
+      manager.close if @options[:progress]
     end
 
     def get_download_link(video_id, title)
