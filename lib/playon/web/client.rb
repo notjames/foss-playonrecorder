@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'faraday'
+
 API_URL = 'https://api.playonrecorder.com/v3'
 WWW_URL = 'https://www.playonrecorder.com'
 TMP_EXT = '.download'

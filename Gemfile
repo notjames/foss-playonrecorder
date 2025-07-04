@@ -10,6 +10,7 @@ gem "ruby-dbus", "~> 0.23.1"
 
 gem "gli", "~> 2.21"
 
+gem "simplecov"
 gem "rspec", "~> 3.13"
 
 gem "recursive-open-struct", "~> 1.2"
