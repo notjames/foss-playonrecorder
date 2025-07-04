@@ -17,18 +17,18 @@ module Library
     end
 
     def auth
-      config     = read_config(@cfg)
-      @creds     = config[:auth]
-      @config    = config[:config]
+      config   = read_config(@cfg)
+      @creds   = config[:auth]
+      @config  = config[:config]
 
-      email      = @creds.email
-      cfg        = @cfg
+      email    = @creds.email
+      cfg      = @cfg
 
-      password   = ENV['PLAYON_PASSWORD']
+      password = ENV['PLAYON_PASSWORD']
 
-      wallet     = @config.wallet
-      folder     = @config.folder
-      entry      = @config.entry
+      wallet   = @config.wallet
+      folder   = @config.folder
+      entry    = @config.entry
 
       if wallet
         if folder.nil? || entry.nil?
