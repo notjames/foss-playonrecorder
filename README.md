@@ -1,234 +1,139 @@
-# playon
+# PlayOn Recorder CLI
 
-This tool interfaces with the PlayOn Recorder API. The PlayOn Recorder is a service that records
-video streams from various sources. The API is used to manage the videos on that service. See 
-[PlayOn Service](https://www.playon.tv/) for more information.
+This tool provides a command-line interface (CLI) for interacting with the PlayOn Recorder API. The PlayOn Recorder is a service that records video streams from various sources, and this CLI allows you to manage your recordings, especially on Linux systems.
 
-DISCLAIMER: This tool is not affiliated with PlayOn. It is a third-party tool that interfaces
-with the PlayOn Recorder API.
+**Disclaimer:** This is a third-party tool and is not affiliated with PlayOn.
 
-PlayOn provides a tool for Windows and Mac users that will allow them to manage their recordings.
-The purpose behind this tool was to make something similar for Linux and make it simple to automate
-downloads of your video recordings from the PlayOn service. PlayOn is not free, but it's a very useful
-service if you need a way to get your Vudu recordings migrated to your local media server and such.
+## Features
 
-`playon` has two main command arguments, `auth` and `videos`.
+*   List your PlayOn recordings.
+*   Download your recordings to your local machine.
+*   Delete recordings from the PlayOn service.
+*   Supports both password-based and secure KDE Wallet authentication.
+*   Automate the process of downloading your recordings.
 
-* `auth` is used to manage the credentials used to authenticate to the PlayOn Recorder.
-* `videos` is used to manage the videos on the PlayOn Recorder.
+## Requirements
 
-## TL;DR
+*   Linux (or macOS, though not officially tested)
+*   Ruby ~> 3.1.4
+*   Bundler ~> 2.2.17
 
-### Requirements
+## Installation
 
-* Linux (or Darwin should work, too, but it's not tested)
-* Ruby ~> 3.1.4
-* Bundler ~> 2.2.17
+1.  **Install dependencies:**
+    ```bash
+    bundle install
+    ```
 
-### Installation
+2.  **Create a symbolic link** to the `playon` executable in a directory that is in your `PATH`. This will allow you to run the `playon` command from anywhere.
+    ```bash
+    # You may need to use sudo for this command
+    ln -s "$(pwd)/bin/playon" /usr/local/bin/playon
+    ```
 
-```
-$ bundle install
-# you might have to run `sudo` for the following command
-$ ln -s $(pwd)/bin/playon /usr/local/bin/playon
-```
+## Getting Started
 
-**(container runtime is not fully working yet!!!)**
+### 1. Authentication
 
-...or run `bin/lxc-playon` which will build a docker image and run 
-the `playon` command in the container. Note that the initial build will take a minute or so.
-Subsequent runs will be faster but not as fast as running the command directly from your machine.
-Obviously, you'll need to have `docker` installed.
+Before you can use the tool, you need to authenticate with your PlayOn account. You only need to do this once. The tool will store your API credentials in a configuration file (`~/.config/playonrecorder/config.json`) for future use. Your password is **not** stored in this file.
 
-### Authentication
+There are two ways to authenticate:
 
-* Password auth
-```
-# set HISTCONTROL to ignoreboth so that your password is not stored in your history
-export HISTCONTROL=ignoreboth; export PLAYON_PASSWORD=your-password
-bin/playon --email your@email.com auth
-```
-  * Wallet
+*   **Password (less secure):**
+    ```bash
+    # Set the HISTCONTROL environment variable to prevent your password from being saved in your shell history
+    export HISTCONTROL=ignoreboth
+    export PLAYON_PASSWORD="your-playon-password"
+    playon --email "your@email.com" auth
+    ```
 
-```
-bin/playon --email your@email.com auth --wallet <wallet-name> --folder <folder-name> [--entry <entry-name>]
-```
+*   **KDE Wallet (more secure):**
+    ```bash
+    playon --email "your@email.com" auth --wallet "your-wallet-name" --folder "your-folder-name"
+    ```
+    For more information on setting up KDE Wallet, see the [KDE documentation](https://docs.kde.org/stable5/en/kwalletmanager/kwallet5/introduction.html).
 
-### Videos:
+### 2. Usage
 
-* list
-```
-❯ bin/playon videos [--switch <args>]... ls
-```
-* download
-```
-❯ bin/playon videos [--switch <args>]... dl
-```
-* delete
-```
-❯ bin/playon videos [--switch <args>]... rm
+Once you're authenticated, you can use the `videos` command to manage your recordings.
+
+**List all recordings:**
+
+```bash
+playon videos ls
 ```
 
-The main thing to remember is that the args for video actions are provided to the `video` command.
-The subcommands are `ls`, `dl`, and `rm`.
+**Download all recordings:**
 
-#### Help Usage
-
-`help` command is available for all commands and subcommands. `help` (without -- prefix) is always
-used before the command or subcommand, and `help` (with -- prefix) is used after the command or subcommand.
-
-```shell
-❯ bin/playon help
-❯ bin/playon help videos
-❯ bin/playon videos --help
+```bash
+playon videos dl
 ```
 
-## Documentation
+**Delete all recordings:**
 
-#### Global Scope Arguments
-
-##### NAME
-```shell
-    playon - Playon Recorder API CLI Tool
+```bash
+playon videos rm
 ```
 
-##### SYNOPSIS
-```shell
-    playon [global options] command [command options] [arguments...]
+You can also use various flags to filter and sort your videos. For example, to download all episodes of a specific series:
+
+```bash
+playon videos --by-series "My Favorite Show" dl
 ```
 
-##### GLOBAL OPTIONS
-```shell
-    -c, --config=arg - config file (default: /home/jimconn/.config/playonrecorder/config.json)
-    --email=arg      - Email address used to auth to PlayOn Recorder (default: none)
-    --help           - Show this message
-    --verbose=arg    - Verbosity level (default: none)
+For a full list of available commands and options, you can use the `help` command:
+
+```bash
+playon help
+playon help videos
+playon videos --help
 ```
 
-##### COMMANDS
-```shell
-    auth   - Manage credential management to the PlayOn Recorder
-    help   - Shows a list of commands or help for one command
-    videos - Manage videos on the PlayOn Recorder
-```
+## Command Reference
 
-#### Auth Arguments
-
-##### NAME
-```shell
-    auth - Manage credential management to the PlayOn Recorder
-```
-
-##### SYNOPSIS
-```shell
-    playon [global options] auth [command options]
+<details>
+<summary>Global Options</summary>
 
 ```
-
-##### COMMAND OPTIONS
-```shell
-    --entry=arg  - Name of the entry in the KDE wallet (default: < --email parameter >)
-    --folder=arg - Name of the folder in the KDE wallet (default: playonrecorder)
-    --wallet=arg - Name of the KDE wallet to use (default: none)
+-c, --config=arg - config file (default: /home/jimconn/.config/playonrecorder/config.json)
+--email=arg      - Email address used to auth to PlayOn Recorder (default: none)
+--help           - Show this message
+--verbose=arg    - Verbosity level (default: none)
 ```
+</details>
 
-#### Videos Arguments
+<details>
+<summary>Commands</summary>
 
-##### NAME
-```shell
-    videos - Manage videos on the PlayOn Recorder
+*   `auth`: Manage credential management to the PlayOn Recorder
+*   `videos`: Manage videos on the PlayOn Recorder
+*   `help`: Shows a list of commands or help for one command
+
+</details>
+
+<details>
+<summary>Videos Command Options</summary>
+
 ```
-
-##### SYNOPSIS
-```shell
-    playon [global options] videos [command options] dl
-
-    playon [global options] videos [command options] ls
-
-    playon [global options] videos [command options] rm
+-a, --[no-]all     - show all videos (default: enabled)
+--by-season=arg    - just show videos from this season(s) (may be used more than once, default: none)
+--by-series=arg    - just show videos from this series(s) (may be used more than once, default: none)
+--dl-path=arg      - path to which to download videos (default: /nas/nas-media-3/stage)
+--[no-]force       - force download of videos even if they already exist
+--[no-]progress    - show download progress (default: enabled)
+-r, --[no-]reverse - reverse the sort order
+-s, --sort-by=arg  - sort by size, title, episode, download-date, rating, expiry, or year (default: title)
+--show-as=arg      - show output as table, json, yaml, or csv (default: table)
+--title=arg        - find videos with named title(s). Regex friendly and case insensitive (may be used more than once, default: none)
 ```
-
-##### COMMAND OPTIONS
-```shell
-  COMMAND OPTIONS
-    -a, --[no-]all     - show all videos (default: enabled)
-    --by-season=arg    - just show videos from this season(s) (may be used more than once, default: none)
-    --by-series=arg    - just show videos from this series(s) (may be used more than once, default: none)
-    --dl-path=arg      - path to which to download videos (default: /nas/nas-media-3/stage)
-    --[no-]force       - force download of videos even if they already exist
-    --[no-]progress    - show download progress (default: enabled)
-    -r, --[no-]reverse - reverse the sort order
-    -s, --sort-by=arg  - sort by size, title, episode, download-date, rating, expiry, or year (default: title)
-    --show-as=arg      - show output as table, json, yaml, or csv (default: table)
-    --title=arg        - find videos with named title(s). Regex friendly and case insensitive (may be used more than once, default: none)
-```
-
-##### COMMANDS
-```shell
-    dl, download - Download videos from the PlayOn Recorder
-    ls, list     - List videos on the PlayOn Recorder
-    rm, delete   - Delete videos on the PlayOn Recorder
-```
-
-### Authentication
-
-Authentication currently supports two methods. One is basic authentication using the `--email` parameter.
-The password must be stored in the `PLAYON_PASSWORD` environment variable or it will be asked for on the
-command line. This is the least secure and desirable method of authentication. It's also the harder method
-for automation.
-
-The other is using the KDE wallet.  The KDE wallet is the only system wallet supported for now. The KDE
-wallet is a secure way to store credentials on a Linux system. The `--entry` parameter is the name of the
-entry in the KDE wallet. By default, it will use the `--email` argument if `--entry` is not specified.
-The `--folder` parameter is the name of the folder in the KDE wallet. The `--wallet`
-parameter is the name of the KDE wallet to use.
-
-NOTE: Once you've authenticated, the API credentials are stored in the config file. The config file is
-stored. The default location for that file is `$HOME/.config/playonrecorder/config.json`. Your password
-is **NOT** stored in the config file. The config file is used to store the API key and the session token.
-
-Subsequent calls to the `playon` command will use the API key and session token stored in the config file
-to authenticate. The token will get renewed automatically, so technically, you need only autheticate once.
-
-## Examples
-
-#### Authentication
-
-##### Basic Authentication
-```
-# set HISTCONTROL to ignoreboth so that your password is not stored in your history
-export HISTCONTROL=ignoreboth; export PLAYON_PASSWORD=your-password
-bin/playon --email your@email.com auth
-```
-
-##### Wallet
-
-```shell
-bin/playon --email your@email.com auth --wallet <wallet-name> --folder <folder-name> [--entry <entry-name>]
-```
-
-`--entry` is required bug if not provided, it will use the `--email` argument as the entry name.
-
-##### Configuring Wallet
-
-This topic is outside the scope of this document. However, one can find documentation [here in the KDE documentation](https://docs.kde.org/stable5/en/kwalletmanager/kwallet5/introduction.html).
-
-#### Videos
-
-* listing
-```
-❯ bin/playon videos [--switch <args>]... ls
-```
-* downloading
-```
-❯ bin/playon videos [--switch <args>]... dl
-```
-* deleting
-```
-❯ bin/playon videos [--switch <args>]... rm
-```
-
+</details>
 
 ## Development
 
-Building the docker image: see `bin/lxc-playon`
+For development purposes, you can build and run the application in a container.
+
+```bash
+bin/lxc-playon
+```
+
+This will build a Docker image and run the `playon` command inside the container. The initial build may take some time. Subsequent runs will be faster. You will need to have Docker installed.

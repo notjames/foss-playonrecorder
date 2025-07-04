@@ -1,17 +1,37 @@
 #!/usr/bin/env bash
 
-#docker buildx build --build-arg UID="$UID"              --build-arg GID="$GID"              --build-arg USER="$USER" -t playon:latest -f docker/Dockerfile .
-dbus_path="${DBUS_SESSION_BUS_ADDRESS/unix:path=/}"
+# Exit immediately if a command exits with a non-zero status.
+set -e
 
+# This script builds a Docker image for the PlayOn Recorder CLI and then runs it.
+# It's designed to provide a consistent and isolated environment for running the tool.
+
+# Build the Docker image.
+# The build arguments (UID, GID, USER) are used to ensure that the user in the container
+# has the same user and group IDs as the user on the host machine. This is important
+# for file permissions.
+echo "Building the playon:latest Docker image..."
 docker build -q \
              --build-arg UID="$(id -u)" \
              --build-arg GID="$(id -g)" \
              --build-arg USER="$USER" \
              -f docker/Dockerfile -t playon:latest .
 
+# Run the Docker container.
+# The following options are used:
+#   -it: Run the container in interactive mode with a pseudo-TTY.
+#   --security-opt apparmor=unconfined: Disable AppArmor confinement, which can interfere with some operations.
+#   -e DBUS_SESSION_BUS_ADDRESS: Pass the D-Bus session bus address to the container, which is needed for KDE Wallet integration.
+#   -e PLAYON_PASSWORD: Pass the PlayOn password to the container.
+#   -v "$HOME"/.config/playonrecorder:"$HOME"/.config/playonrecorder: Mount the configuration directory from the host to the container.
+#   --mount type=bind,source="$dbus_path",target="$dbus_path": Mount the D-Bus socket from the host to the container.
+#   playon:latest: The name of the Docker image to run.
+#   "$@": Pass all of the script's arguments to the `docker run` command.
+echo "Running the playon:latest Docker container..."
+dbus_path="${DBUS_SESSION_BUS_ADDRESS/unix:path=/}"
 docker run -it --security-opt apparmor=unconfined \
                -e DBUS_SESSION_BUS_ADDRESS="$DBUS_SESSION_BUS_ADDRESS" \
                -e PLAYON_PASSWORD="$PLAYON_PASSWORD" \
                -v "$HOME"/.config/playonrecorder:"$HOME"/.config/playonrecorder \
                --mount type=bind,source="$dbus_path",target="$dbus_path" \
-               playon:latest
+               playon:latest "$@"

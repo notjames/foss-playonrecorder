@@ -1,32 +1,33 @@
 FROM ruby:3.1.4
 
+# Set the working directory
 ENV APP_DIR /app
-
-ARG USER $USER
-ENV USER $USER
-
-ARG UID $UID
-ENV UID $UID
-
-ARG GID $GID
-ENV GID $GID
-
-ENV PATH $APP_DIR/bin:$PATH
-ENV DBUS_SESSION_BUS_ADDRESS $DBUS_SESSION_BUS_ADDRESS
-
-COPY . $APP_DIR
-
 WORKDIR $APP_DIR
 
-# Install dependencies
+# Set up a non-root user
+ARG USER
+ARG UID
+ARG GID
+ENV USER=${USER:-user}
+ENV UID=${UID:-1000}
+ENV GID=${GID:-1000}
+
+# Install dependencies and create the user
 RUN apt-get update -qq && \
-    apt install -y dbus dbus-user-session && \
+    apt-get install -y --no-install-recommends dbus dbus-user-session && \
+    rm -rf /var/lib/apt/lists/* && \
     groupadd -g $GID $USER && \
-    useradd -m -u $UID -g $GID $USER && \
-    chown -R $USER:$USER $APP_DIR
+    useradd -m -u $UID -g $GID $USER
 
-USER $USER
-
+# Copy the Gemfile and Gemfile.lock and install gems
+COPY Gemfile Gemfile.lock ./
 RUN bundle install
 
+# Copy the rest of the application code
+COPY . .
+
+# Set the user
+USER $USER
+
+# Set the entrypoint
 ENTRYPOINT ["bin/playon"]
