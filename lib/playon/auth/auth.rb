@@ -59,7 +59,7 @@ class Auth
     config
   end
 
-  # http --follow POST api.playonrecorder.com/v3/login x-mmt-app:web email==snafuxnj@yahoo.com password=="$(kwalletcli -f playonrecorder -e snafuxnj@yahoo.com)")"
+  # http --follow POST api.playonrecorder.com/v3/login x-mmt-app:web email==<email@dom.com> password=="$(kwalletcli -f playonrecorder -e <email@dom.com>)")"
   # note that email and password are sent as query parameters
   def login
     return read_config unless token_is_expired?
