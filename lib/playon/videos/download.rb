@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-# frozen_string_literal: true
-
 require 'find'
 require_relative '../progress/manager'
 require_relative '../progress/bar'
+
+require 'pry-byebug'
 
 MAX_DOWNLOADS = 6
 
@@ -124,6 +124,8 @@ module Library
                   bar.update(progress) if bar
                 end
                 bar.complete if bar
+                # rename the temporary file to the final file name
+                File.rename(dl_tpath, file_path) if File.exist?(dl_tpath)
               rescue StandardError => e
                 bar.complete(e.message) if bar
               ensure
