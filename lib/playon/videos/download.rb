@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# frozen_string_literal: true
+
+require 'find'
 require_relative '../progress/manager'
 require_relative '../progress/bar'
 
@@ -60,71 +63,85 @@ module Library
     end
 
     def download_all
-      threads = []
-      manager = Playon::ProgressManager.new if @options[:progress]
-
+      # --- Phase 1: Filter videos ---
       if @options[:force] == false
         warn 'Checking for video existence...'
 
-        @videos.select! do |video|
+        videos_to_download = @videos.select do |video|
           get_resp(video)
-
-          next if already_exists?(video[:file_path])
-
-          puts format('Will download: %s (%s)', video[:Name], video[:HumanSize])
-          video
-        end 
-
-        puts format('Will download %d videos...', @videos.size)
-      end
-
-      if @options[:progress]
-        progress_thread = Thread.new do
-          loop do
-            manager.draw
-            sleep 0.1
-          end
+          !already_exists?(video[:file_path])
         end
-        threads << progress_thread
+
+        if videos_to_download.any?
+          videos_to_download.each do |video|
+            puts format('Will download: %s (%s)', video[:Name], video[:HumanSize])
+          end
+          puts format('Will download %d videos...', videos_to_download.size)
+        else
+          puts 'No new videos to download.'
+          return
+        end
+        @videos = videos_to_download
       end
 
-      @videos.each_slice(MAX_DOWNLOADS) do |slice|
-        slice.each do |video|
-          video = get_resp(video) unless video.key?(:resp)
-          resp = video[:resp]
-          cf_link = build_cf_link(resp[:data])
-          video_ext = resp[:data][:url].split('.').last
-          title = video[:Name].gsub(/[^ -~]+\'|\s*\(\d+\-?\)|\s+$/, '')
-          file_path = video[:file_path]
-          dl_tpath = format('%s/%s.%s%s', @options[:'dl-path'], title, video_ext, TMP_EXT)
-          fin_size = video[:Size]
-
-          if @options[:force]
-            File.unlink(file_path) rescue Errno::ENOENT
-            touch(dl_tpath)
-          end
-
-          if @options[:progress]
-            bar = Playon::ProgressBar.new(title, fin_size)
-            manager.add_bar(bar)
-          end
-
-          download_thread = Thread.new do
-            @dl_client.do_download(cf_link, @options, title, file_path, dl_tpath) do |progress|
-              bar.update(progress) if @options[:progress]
-            end
-            if @options[:progress]
-              bar.complete
-              manager.remove_bar(bar)
+      # --- Phase 2: Download with progress ---
+      manager = nil
+      progress_thread = nil
+      begin
+        if @options[:progress]
+          manager = Playon::ProgressManager.new
+          progress_thread = Thread.new do
+            loop do
+              manager.draw
+              sleep 0.1
             end
           end
-          threads << download_thread
         end
-        threads.each(&:join)
-        threads.clear
+
+        download_threads = []
+        @videos.each_slice(MAX_DOWNLOADS) do |slice|
+          slice.each do |video|
+            video = get_resp(video) unless video.key?(:resp)
+            resp = video[:resp]
+            cf_link = build_cf_link(resp[:data])
+            video_ext = resp[:data][:url].split('.').last
+            title = video[:Name].gsub(/[^ -~]+\'|\s*\(\d+\-?\)|\s+$/, '')
+            file_path = video[:file_path]
+            dl_tpath = format('%s/%s.%s%s', @options[:'dl-path'], title, video_ext, TMP_EXT)
+            fin_size = video[:Size]
+
+            if @options[:force]
+              File.unlink(file_path) rescue Errno::ENOENT
+              touch(dl_tpath)
+            end
+
+            bar = @options[:progress] ? Playon::ProgressBar.new(title, fin_size) : nil
+            manager.add_bar(bar) if bar
+
+            download_threads << Thread.new do
+              begin
+                @dl_client.do_download(cf_link, @options, title, file_path, dl_tpath) do |progress|
+                  bar.update(progress) if bar
+                end
+                bar.complete if bar
+              rescue StandardError => e
+                bar.complete(e.message) if bar
+              ensure
+                # Wait a moment before removing the bar so the user can see the final state
+                sleep 1
+                manager.remove_bar(bar) if bar
+              end
+            end
+          end
+          # Wait for the current slice of downloads to finish
+          download_threads.each(&:join)
+          download_threads.clear
+        end
+      ensure
+        # --- Phase 3: Cleanup ---
+        progress_thread.kill if progress_thread
+        manager.close if manager
       end
-    ensure
-      manager.close if @options[:progress]
     end
 
     def get_download_link(video_id, title)
