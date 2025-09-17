@@ -24,7 +24,7 @@ GEM
       byebug (~> 11.0)
       pry (>= 0.13, < 0.15)
     recursive-open-struct (1.2.2)
-    rexml (3.3.9)
+    rexml (3.4.2)
     rspec (3.13.0)
       rspec-core (~> 3.13.0)
       rspec-expectations (~> 3.13.0)
@@ -64,7 +64,7 @@ DEPENDENCIES
   gli (~> 2.21)
   pry-byebug (~> 3.10)
   recursive-open-struct (~> 1.2)
-  rexml (~> 3.3)
+  rexml (~> 3.4)
   rspec (~> 3.13)
   ruby-dbus (~> 0.23.1)
   simplecov
