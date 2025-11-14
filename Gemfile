@@ -26,4 +26,4 @@ gem "colorize", "~> 1.1"
 
 gem "curses", "~> 1.4"
 
-gem "rexml", "~> 3.3"
+gem "rexml", "~> 3.4"
