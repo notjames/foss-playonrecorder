@@ -4,7 +4,7 @@ source "https://rubygems.org"
 
 # gem "rails"
 
-gem "faraday", "~> 2.9"
+gem "faraday", "~> 2.14"
 
 gem "ruby-dbus", "~> 0.23.1"
 
