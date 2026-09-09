@@ -9,14 +9,18 @@ GEM
     diff-lcs (1.5.1)
     docile (1.4.1)
     e2mmap (0.1.0)
-    faraday (2.9.2)
-      faraday-net_http (>= 2.0, < 3.2)
-    faraday-net_http (3.1.0)
-      net-http
+    faraday (2.14.1)
+      faraday-net_http (>= 2.0, < 3.5)
+      json
+      logger
+    faraday-net_http (3.4.2)
+      net-http (~> 0.5)
     gli (2.21.1)
+    json (2.18.1)
+    logger (1.7.0)
     method_source (1.1.0)
-    net-http (0.4.1)
-      uri
+    net-http (0.9.1)
+      uri (>= 0.11.1)
     pry (0.14.2)
       coderay (~> 1.1)
       method_source (~> 1.0)
@@ -51,7 +55,7 @@ GEM
     thwait (0.2.0)
       e2mmap
     unicode-display_width (2.5.0)
-    uri (0.13.2)
+    uri (1.1.1)
 
 PLATFORMS
   x86_64-linux
@@ -60,7 +64,7 @@ DEPENDENCIES
   amazing_print (~> 1.6)
   colorize (~> 1.1)
   curses (~> 1.4)
-  faraday (~> 2.9)
+  faraday (~> 2.14)
   gli (~> 2.21)
   pry-byebug (~> 3.10)
   recursive-open-struct (~> 1.2)
